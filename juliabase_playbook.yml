@@ -1,0 +1,35 @@
+---
+- name: Configure Julia
+  hosts: all
+  gather_facts: false
+  pre_tasks:
+  - name: Bootstrap ansible
+    raw: sudo apt-get -y install python3-minimal aptitude
+  - action: setup
+  tasks:
+  - name: Update the base system
+    apt:
+      upgrade: yes
+      update_cache: yes
+    become: true
+
+  - name: Install required system packages
+    apt: pkg={{ item }} state=installed
+    with_items:
+      - build-essential
+      - cmake
+      - m4
+      - gfortran
+    become: true
+
+  - name: Clone Julia
+    git: repo=https://github.com/JuliaLang/julia.git dest=src/julia remote=origin version=v0.6.0
+
+  - name: Configure Julia
+    shell: echo "BUILD_LLVM_CLANG=1" > src/julia/Make.user
+
+  - name: Build Julia
+    shell: make -C src/julia -j `nproc`
+
+  - name: Add Julia to path
+    shell: echo "PATH=\${HOME}/src/julia/usr/bin:\${PATH}" >> .profile 

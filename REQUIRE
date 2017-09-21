@@ -1,0 +1,9 @@
+CUDAnative
+Cxx
+GPUArrays
+DistributedArrays
+IJulia
+Plots
+PlotlyJS
+Knet
+BenchmarkTools

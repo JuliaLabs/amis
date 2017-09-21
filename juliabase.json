@@ -1,0 +1,50 @@
+{
+	"builders": [
+		{
+			"type": "amazon-ebs",
+			"region": "us-east-1",
+			"instance_type": "c4.4xlarge",
+			"ssh_username": "ubuntu",
+			"ami_name": "MIT-JuliaBase  {{timestamp}}",
+			"ami_description": "AMI with support for Julia. Provided by JuliaLab@MIT",
+			"ami_groups": "",
+			"ami_regions": ["us-east-1"],
+			"subnet_id": "subnet-7df31036",
+			"source_ami_filter": {
+				"filters": {
+					"virtualization-type": "hvm",
+					"name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+					"root-device-type": "ebs"
+				},
+				"owners": ["099720109477"],
+				"most_recent": true
+			},
+			"ami_virtualization_type": "hvm",
+			"launch_block_device_mappings": [
+				{
+					"delete_on_termination": "true",
+					"volume_size": "14",
+					"volume_type": "gp2",
+					"device_name": "/dev/sda1"
+				}
+
+			],
+			"ami_block_device_mappings": [
+				{
+					"delete_on_termination": "true",
+					"volume_size": "14",
+					"volume_type": "gp2",
+					"device_name": "/dev/sda1"
+				}
+			]
+
+		}
+	],
+	"provisioners": [
+		{
+			"type": "ansible",
+			"playbook_file": "./juliabase_playbook.yml",
+			"extra_arguments": ["--extra-vars", "ansible_python_interpreter=/usr/bin/python3"]
+		}
+	]
+}

@@ -1,0 +1,80 @@
+---
+- name: Configure JuliaGPU
+  hosts: all
+  environment:
+          PATH: /usr/local/cuda/bin:{{ ansible_env.PATH }}
+  tasks:
+  - name: Copy CUDA repo deb
+    copy:
+        src: debs/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb 
+        dest: /home/ubuntu/debs/
+
+  - name: Copy CUDNN-dev
+    copy:
+        src: debs/libcudnn7-dev_7.0.2.38-1+cuda8.0_amd64.deb
+        dest: /home/ubuntu/debs/
+  
+  - name: Copy CUDNN
+    copy:
+        src: debs/libcudnn7_7.0.2.38-1+cuda8.0_amd64.deb
+        dest: /home/ubuntu/debs/
+  
+  - name: Enable CUDA repo deb
+    become: true
+    apt: deb="/home/ubuntu/debs/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb"
+
+  - name: Update the base system
+    become: true
+    apt:
+      upgrade: yes
+      update_cache: yes
+
+  - name: Install required system packages
+    apt: pkg={{ item }} state=installed
+    become: true
+    with_items:
+      - python3-pip
+      - tmux
+      - htop
+      - cuda
+      - hdf5-tools
+      - libc6-dev-i386
+      - unzip
+      - libclblas-dev
+      - libclfft-dev
+
+  - name: Add CUDA to path
+    shell: echo "PATH=/usr/local/cuda/bin/:\${PATH}" >> .profile 
+
+  - name: Update pip
+    become: true
+    action: pip name=pip state=latest
+
+  - name: Enable CUDNN
+    become: true
+    apt: deb="/home/ubuntu/debs/libcudnn7_7.0.2.38-1+cuda8.0_amd64.deb"
+ 
+  - name: Enable CUDNN-dev
+    become: true
+    apt: deb="/home/ubuntu/debs/libcudnn7-dev_7.0.2.38-1+cuda8.0_amd64.deb"
+ 
+  - name: Install Jupyter
+    become: true
+    action: pip name={{item}} state=present
+    with_items:
+      - jupyter
+
+  - name: Init Pkg dir
+    shell: src/julia/usr/bin/julia -e "Pkg.init()"
+
+  - name: Install Julia packages
+    shell: src/julia/usr/bin/julia -e 'Pkg.add("{{ item }}")'
+    with_lines: cat "REQUIRE"
+
+  - name: Build Julia packages (to check for system problems)
+    shell: src/julia/usr/bin/julia -e 'Pkg.build()'
+
+    #  - name: Test Julia packages
+    #    shell: src/julia/usr/bin/julia -e 'Pkg.test("{{ item }}")'
+    #    with_lines: cat "REQUIRE"
+

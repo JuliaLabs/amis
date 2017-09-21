@@ -1,0 +1,50 @@
+{
+	"builders": [
+		{
+			"type": "amazon-ebs",
+			"region": "us-east-1",
+			"instance_type": "p2.xlarge",
+			"ssh_username": "ubuntu",
+			"ami_name": "MIT-JuliaGPU  {{isotime \"2006-01-02 15_04_05\"}}",
+			"ami_description": "AMI with support for the JuliaGPU and ML stack. Provided by JuliaLab@MIT",
+			"ami_groups": "",
+			"ami_regions": ["us-east-1"],
+			"subnet_id": "subnet-7df31036",
+			"source_ami_filter": {
+				"filters": {
+					"virtualization-type": "hvm",
+					"name": "*MIT-JuliaBase*",
+					"root-device-type": "ebs"
+				},
+				"owners": ["832859092915"],
+				"most_recent": true
+			},
+			"ami_virtualization_type": "hvm",
+			"launch_block_device_mappings": [
+				{
+					"delete_on_termination": "true",
+					"volume_size": "20",
+					"volume_type": "gp2",
+					"device_name": "/dev/sda1"
+				}
+
+			],
+			"ami_block_device_mappings": [
+				{
+					"delete_on_termination": "true",
+					"volume_size": "20",
+					"volume_type": "gp2",
+					"device_name": "/dev/sda1"
+				}
+			]
+
+		}
+	],
+	"provisioners": [
+		{
+			"type": "ansible",
+			"playbook_file": "./juliagpu_playbook.yml",
+			"extra_arguments": ["--extra-vars", "ansible_python_interpreter=/usr/bin/python3"]
+		}
+	]
+}
